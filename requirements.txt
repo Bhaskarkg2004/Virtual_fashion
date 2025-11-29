@@ -1,0 +1,15 @@
+# Backend / ML Requirements (Proposed)
+# To be used when implementing the Python Backend
+# Install with: pip install -r requirements.txt
+
+flask==3.0.0
+flask-cors==4.0.0
+numpy==1.26.0
+pandas==2.1.0
+opencv-python==4.8.0
+tensorflow==2.15.0
+torch==2.1.0
+torchvision==0.16.0
+face-recognition==1.3.0
+pillow==10.0.0
+scikit-learn==1.3.0
