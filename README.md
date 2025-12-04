@@ -10,7 +10,7 @@ StyleMate is a modern, React-based web application designed to help users manage
 
 ### 2. 👗 Wardrobe Management
 - **Digital Closet**: View all your clothes in a grid layout.
-- **Categorization**: Filter by Top, Bottom, Sports, Formals, Home Wear, etc.
+- **Categorization**: Filter by Top, Bottom, Sports, Formals, Home Wear, etc.z
 - **Add Items**: Upload photos of your clothes and categorize them.
 - **Delete Items**: Remove unwanted items from your collection.
 
@@ -70,7 +70,8 @@ If you proceed to implement the Python backend for Deep Learning features:
 
 2.  **Run the Python Server** (e.g., app.py):
     ```bash
-    python app.py
+    # Run from the project root directory
+    python backend/app.py
     ```
 
 ## 🔮 Future Scope (Deep Learning Integration)

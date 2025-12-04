@@ -18,38 +18,46 @@ const StyleGuide = () => {
         }
     };
 
-    const [modelLoaded, setModelLoaded] = useState(false);
-
-    React.useEffect(() => {
-        const initModels = async () => {
-            try {
-                const { loadModels } = await import('../utils/skinAnalysis');
-                await loadModels();
-                setModelLoaded(true);
-            } catch (error) {
-                console.error('Failed to load models', error);
-            }
-        };
-        initModels();
-    }, []);
+    // Backend connection check could go here, but for now we assume it's running
+    const modelLoaded = true;
 
     const analyzeSkinTone = async () => {
         if (!image) return;
 
         setAnalyzing(true);
         try {
-            const { analyzeImage } = await import('../utils/skinAnalysis');
+            // Convert base64 to blob
+            const response = await fetch(image);
+            const blob = await response.blob();
 
-            // Create a temporary image element for analysis
-            const img = new Image();
-            img.src = image;
-            await new Promise(resolve => img.onload = resolve);
+            const formData = new FormData();
+            formData.append('image', blob, 'upload.jpg');
 
-            const analysisResult = await analyzeImage(img);
-            setResult(analysisResult);
+            // Use localhost for local development
+            const apiResponse = await fetch('http://localhost:5000/predict-skin-tone', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const data = await apiResponse.json();
+
+            if (!apiResponse.ok) {
+                throw new Error(data.error || 'Failed to analyze image');
+            }
+            // Format the backend response to match our frontend structure
+            const formattedResult = {
+                skinTone: data.skinTone,
+                skinToneHex: data.skinToneHex || '#e0ac69', // Use the representative color sent by backend
+                description: `Based on our model analysis, your skin tone is classified as ${data.skinTone}. This suggests a ${data.season} seasonal palette.`,
+                recommendations: data.colors, // Backend now sends {name, hex} objects
+                avoid: data.avoid || [], // Backend now sends {name, hex} objects
+                combinations: data.combinations || []
+            };
+
+            setResult(formattedResult);
         } catch (error) {
             console.error(error);
-            alert(error.message || 'Failed to analyze image. Please try a clearer photo.');
+            alert('Error connecting to AI Server. Make sure "python app.py" is running in the backend folder.\n\nDetails: ' + error.message);
         } finally {
             setAnalyzing(false);
         }
@@ -182,9 +190,10 @@ const StyleGuide = () => {
                                 <h3 className="font-semibold text-slate-900 mb-3">Colors to Avoid</h3>
                                 <div className="flex flex-wrap gap-2">
                                     {result.avoid.map((color) => (
-                                        <span key={color} className="px-3 py-1 bg-red-50 text-red-600 rounded-full text-sm font-medium border border-red-100">
-                                            {color}
-                                        </span>
+                                        <div key={color.name} className="flex items-center gap-2 px-3 py-1 bg-red-50 text-red-600 rounded-full text-sm font-medium border border-red-100">
+                                            <div className="w-3 h-3 rounded-full bg-current" style={{ backgroundColor: color.hex }} />
+                                            {color.name}
+                                        </div>
                                     ))}
                                 </div>
                             </div>

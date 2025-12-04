@@ -19,15 +19,42 @@ const VirtualTryOn = () => {
         }
     };
 
-    const generateTryOn = () => {
+    const generateTryOn = async () => {
+        if (!personImage || !clothImage) return;
+
         setGenerating(true);
-        // Mock ML generation delay
-        setTimeout(() => {
+        try {
+            // Convert base64 images to blobs
+            const personBlob = await (await fetch(personImage)).blob();
+            const clothBlob = await (await fetch(clothImage)).blob();
+
+            const formData = new FormData();
+            formData.append('person_image', personBlob, 'person.jpg');
+            formData.append('cloth_image', clothBlob, 'cloth.jpg');
+
+            const response = await fetch('http://localhost:5000/virtual-try-on', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to generate try-on');
+            }
+
+            if (data.success && data.image) {
+                setResultImage(data.image);
+            } else {
+                throw new Error('Invalid response from server');
+            }
+
+        } catch (error) {
+            console.error("Try-On Error:", error);
+            alert(`Error: ${error.message}\n\nNote: The backend might be downloading the model (can take a few minutes first time).`);
+        } finally {
             setGenerating(false);
-            // For demo, we just show the person image again but ideally this would be the merged result
-            // In a real app, this would be the response from the ML backend
-            setResultImage(personImage);
-        }, 3000);
+        }
     };
 
     return (
@@ -86,8 +113,8 @@ const VirtualTryOn = () => {
                         onClick={generateTryOn}
                         disabled={!personImage || !clothImage || generating}
                         className={`w-full py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all ${!personImage || !clothImage || generating
-                                ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                                : 'bg-gradient-to-r from-primary-600 to-secondary-600 text-white shadow-lg hover:shadow-primary-500/30'
+                            ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                            : 'bg-gradient-to-r from-primary-600 to-secondary-600 text-white shadow-lg hover:shadow-primary-500/30'
                             }`}
                     >
                         {generating ? (
